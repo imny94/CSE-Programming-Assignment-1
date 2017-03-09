@@ -20,7 +20,7 @@ public class ParseFile {
                 //add this node
                 ProcessGraph.addNode(index);
                 //handle Children
-                listOfChildrenId.add(quatiles[1]);
+                listOfChildrenId.add(quatiles[1]);	// Stores all the children of current node in arraylist, where index of storage represents nodeID
                 
                 //setup command
                 ProcessGraph.nodes.get(index).setCommand(quatiles[0]);
@@ -46,14 +46,14 @@ public class ParseFile {
                 }
             }
             
-            for(int j = 0;j<index;j++){
-            	if (!listOfChildrenId.get(j).equals("none")){ // If there are children nodes
-                    String[] childrenStringArray=listOfChildrenId.get(j).split(" ");
-                    int[] childrenId=new int[childrenStringArray.length];
-                    for (int i = 0; i < childrenId.length; i++) { // Iterates through the children IDs
-                        childrenId[i]= Integer.parseInt(childrenStringArray[i]);
-                        ProcessGraph.addNode(childrenId[i]);
-                        ProcessGraph.nodes.get(j).addChild(ProcessGraph.nodes.get(childrenId[i]));
+            for(int j = 0;j<index;j++){																							// Iterate through all the nodes
+            	if (!listOfChildrenId.get(j).equals("none")){ 																	// If there are children nodes for this particular node
+                    String[] childrenStringArray=listOfChildrenId.get(j).split(" ");											// split up the given children IDs into IDs of each Child Node from 1 string to an Array
+//                    int[] childrenId=new int[childrenStringArray.length];
+                    for (int i = 0; i < childrenStringArray.length; i++) { 														// Iterates through the children IDs
+//                        childrenId[i]= Integer.parseInt(childrenStringArray[i]);					
+//                        ProcessGraph.addNode(childrenId[i]);
+                        ProcessGraph.nodes.get(j).addChild(ProcessGraph.nodes.get(Integer.parseInt(childrenStringArray[i])));	// and update all the nodes in the tree with each of their respective children if any
                     }
                 }
             }
