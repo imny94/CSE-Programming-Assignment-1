@@ -7,13 +7,13 @@ public class ProcessManagement {
     //set the working directory
     private static File currentDirectory = new File(System.getProperty("user.dir"));
     //set the instructions file
-    private static File instructionSet = new File("graph-file1.txt");
+    private static File instructionSet = new File("graph-file.txt");
     public static Object lock=new Object();
 
     public static void main(String[] args) throws InterruptedException {
 
         //parse the instruction file and construct a data structure, stored inside ProcessGraph class
-        ParseFile.generateGraph(new File(currentDirectory + File.separator+"src"+File.separator+instructionSet));
+        ParseFile.generateGraph(new File(currentDirectory +File.separator+instructionSet));
 
         // Print the graph information
         ProcessGraph.printGraph();
