@@ -89,11 +89,11 @@ public class ProcessGraphNode {
 
     public synchronized boolean allParentsExecuted(){
         boolean ans=true;
-        for (ProcessGraphNode child : this.getChildren()) { 
-            if (child.isExecuted()) {  // @TODO: WHY?!?!?
-                return false;
-            }
-        }
+//        for (ProcessGraphNode child : this.getChildren()) { 
+//            if (child.isExecuted()) {  // TODO: WHY?!?!?
+//                return false;
+//            }
+//        }
         for (ProcessGraphNode parent:this.getParents()) {
             if (!parent.isExecuted())
                 ans=false;
