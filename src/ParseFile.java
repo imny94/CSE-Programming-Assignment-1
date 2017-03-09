@@ -29,14 +29,6 @@ public class ParseFile {
                 //setup output
                 ProcessGraph.nodes.get(index).setOutputFile(new File(quatiles[3]));
                 
-                //mark initial runnable
-                for (ProcessGraphNode node:ProcessGraph.nodes) {
-                    if (node.getParents().isEmpty()){
-                        node.setRunnable();
-                    }
-                }
-
-
                 index++;
             }
             
@@ -44,6 +36,13 @@ public class ParseFile {
             for (ProcessGraphNode node : ProcessGraph.nodes) {
                 for (ProcessGraphNode childNode : node.getChildren()) {
                     ProcessGraph.nodes.get(childNode.getNodeId()).addParent(ProcessGraph.nodes.get(node.getNodeId()));
+                }
+            }
+            
+          //mark initial runnable
+            for (ProcessGraphNode node:ProcessGraph.nodes) {
+                if (node.getParents().isEmpty()){
+                    node.setRunnable();
                 }
             }
             
