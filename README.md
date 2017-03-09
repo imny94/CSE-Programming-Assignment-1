@@ -66,4 +66,3 @@ while holding back processes which has yet to be executed, but not ready to be e
 have yet to be met.
 
 This will thus allow the program to only allow processes whose dependencies have been made to be executed.
-process regarding the status of the parent process of the current node, the current process will b
