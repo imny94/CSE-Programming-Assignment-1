@@ -31,7 +31,22 @@ After the program is successfully compiled, enter the following to run the progr
 java ProcessManagement
 ```
 
-Before executing the program, ensure the relevant dependency graph is stored in the same location as this program.
+Before executing the program, ensure the relevant dependency graph is stored in the same location as this program,
+and in the right data format.
 
+The text file should describe the individual nodes within the Graph, whereby it will include information
+on the to be executed for each node, the dependencies of the process, as well as its input and output
+files.
+
+The text file is colon delimited and in the following format:
+```
+Command with arguments space delimited: All Dependencies space delimited : All Input Space Delimited : Output 
+```
+An Example would be:
+```
+grep 3:6:cat-out.txt:grep-out.txt
+```
+The ID of each node will be based on the order in which the nodes appears in the text file. A new line
+represents a new node.
 
 ## What will the program do:
