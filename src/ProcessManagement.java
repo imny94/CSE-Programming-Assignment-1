@@ -29,6 +29,7 @@ public class ProcessManagement {
         		ProcessGraphNode indvNode = iter.next();													// and check
         		if(!indvNode.isExecuted()){																	// If Node has not been executed
             		if(indvNode.isRunnable()){																// and is runnable
+            			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
             			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
             			iter.remove();																		// After executing the command, the current node has been executed, and hence removed from the tree
             		}
