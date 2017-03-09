@@ -1,5 +1,8 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 public class ProcessManagement {
@@ -79,7 +82,19 @@ public class ProcessManagement {
 		
 		try {
 			Process p = pBuilder.start();							// Once the directory, input and output are set, try to start the process with the given command and argument
-		} catch (IOException e) {									// and print out any error messages should an input/output error be detected.
+			// obtain the input stream
+			InputStream is = p.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+
+			// read what is returned by the command
+			String line;
+			while ( (line = br.readLine()) != null)					// we then read any input returned by the command
+				System.out.println(line);							// and print it out
+
+			// close BufferedReader
+			br.close();
+		} catch (IOException e) {									// If any an input/output errors are detected, print out the error messages.
 			e.printStackTrace();
 		}
 	}
