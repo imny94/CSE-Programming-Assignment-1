@@ -21,17 +21,21 @@ ensuring that the dependencies on the Graph are not violated, and all processes 
 the relevant dependencies are satisfied. 
 
 ## How to Compile the program:
+This program has been made to be executed in the command line, and only on linux-based systems, as the commands
+in the instruction set are linux commands.
+
 When Executing from the command line, type in the following if program is being executed for the first time :
 ```java
 javac ProcessManagement.java
 ```
+This will compile the relevant program files required for this program to run.
 
 After the program is successfully compiled, enter the following to run the program :
 ```java
-java ProcessManagement
+java ProcessManagement instructionset.txt
 ```
-
-Before executing the program, ensure the relevant dependency graph is stored in the same location as this program,
+Note that the instructionset.txt can be any other file name, as long as the file is in the right format. Also,
+before executing the program, ensure the relevant dependency graph is stored in the same location as this program,
 and in the right data format.
 
 The text file should describe the individual nodes within the Graph, whereby it will include information
