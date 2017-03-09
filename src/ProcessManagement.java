@@ -4,7 +4,7 @@ import java.io.IOException;
 public class ProcessManagement {
 
     //set the working directory
-    private static File currentDirectory = new File(System.getProperty("user.dir")+"/src");
+    private static File currentDirectory = new File(System.getProperty("user.dir"));
     //set the instructions file
     private static File instructionSet = new File("graph-file.txt");
     public static Object lock=new Object();
@@ -22,6 +22,7 @@ public class ProcessManagement {
             	if(!indvNode.isExecuted()){
             		if(indvNode.isRunnable()){
             			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());
+            			ProcessGraph.nodes.remove(indvNode);
             		}
             	}else{
             		// Removes completed processes from the Process Graph
@@ -51,8 +52,13 @@ public class ProcessManagement {
 		String[] commandList = command.split(" ");
 		ProcessBuilder pBuilder = new ProcessBuilder(commandList);
 		pBuilder.directory(currentDirectory);
-		pBuilder.redirectInput(inputFile);
-		pBuilder.redirectOutput(outputFile);
+		if(!inputFile.getName().equals("stdin")){
+			pBuilder.redirectInput(inputFile);
+		}
+		if(!outputFile.getName().equals("stdout")){
+			pBuilder.redirectOutput(outputFile);
+		}
+		
 		try {
 			pBuilder.start();
 		} catch (IOException e) {
