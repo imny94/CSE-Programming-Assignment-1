@@ -9,7 +9,7 @@ data structures and control flow.
 ### Collaborators:
 Nicholas Yeow Teng Mun (1001490)
 
-Yin Ji Sheng ()
+Yin Ji Sheng (1001670)
 
 ## Purpose of the program:
 This program will control the execution of different processes based on the control and data 
