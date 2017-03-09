@@ -50,3 +50,20 @@ The ID of each node will be based on the order in which the nodes appears in the
 represents a new node.
 
 ## What will the program do:
+
+This program will read the graph representing the dependencies of various processes and, using that graph,
+this program will then control how the processes are being executed based on the dependency requirements of 
+each process. 
+
+This is done by maintaining a data structure for each node/process in the tree, whereby each process will have
+a record of the current status of itself, such as whether the process has already been executed, if it is 
+ready to be executed, the parent dependencies it has, the child dependencies, and its input and output files. 
+Utilising this data structure, the program will create a process graph, made up of the individual processes.
+
+By iterating through the Process Graph, this program will then fork new processes from the Operating System 
+whenever it encounters a process in the Process Graph that has not been executed, and is ready to be executed,
+while holding back processes which has yet to be executed, but not ready to be executed, i.e. its dependencies
+have yet to be met.
+
+This will thus allow the program to only allow processes whose dependencies have been made to be executed.
+process regarding the status of the parent process of the current node, the current process will b
