@@ -33,23 +33,7 @@ public class ProcessManagement {
             		// in above for loop
             		iter.remove();
             	}
-        	}
-        	
-//        	for(ProcessGraphNode indvNode : ProcessGraph.nodes){
-//            	if(!indvNode.isExecuted()){
-//            		if(indvNode.isRunnable()){
-//            			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());
-//            			ProcessGraph.nodes.remove(indvNode);
-//            		}
-//            	}else{
-//            		// Removes completed processes from the Process Graph
-//            		// This helps to reduce the number of objects iterated through
-//            		// in above for loop
-//            		ProcessGraph.nodes.remove(indvNode);
-//            	}
-//            	
-//            }
-        	
+        	}        	
         }
         
         // Using index of ProcessGraph, loop through each ProcessGraphNode, to check whether it is ready to run
@@ -66,7 +50,6 @@ public class ProcessManagement {
     }
 
 	private static void execute(String command, File inputFile, File outputFile) {
-		// TODO Auto-generated method stub
 		String[] commandList = command.split(" ");
 		ProcessBuilder pBuilder = new ProcessBuilder(commandList);
 		pBuilder.directory(currentDirectory);
@@ -80,7 +63,6 @@ public class ProcessManagement {
 		try {
 			Process p = pBuilder.start();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
