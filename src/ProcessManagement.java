@@ -22,8 +22,11 @@ public class ProcessManagement {
 
         // Print the graph information
         ProcessGraph.printGraph();
-	
-        while(ProcessGraph.nodes.size()>0){																	// While there are nodes on the tree
+        
+        int numberOfUnRunnableProcesses = 0;
+        int numNodes = ProcessGraph.nodes.size();
+        boolean complete = true;
+        while(numNodes>0){																					// While there are nodes on the tree
         	Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								
         	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
         		ProcessGraphNode indvNode = iter.next();													// and check
@@ -32,6 +35,9 @@ public class ProcessManagement {
             			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
             			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
             			iter.remove();																		// After executing the command, the current node has been executed, and hence removed from the tree
+            			numberOfUnRunnableProcesses = 0;
+            		}else{
+            			numberOfUnRunnableProcesses ++;
             		}
             	}else{
             		// Removes completed processes from the Process Graph
@@ -41,10 +47,14 @@ public class ProcessManagement {
             		// executed.
             		iter.remove();
             	}
+        		if(numberOfUnRunnableProcesses >= numNodes){
+        			System.out.println("Circular Dependencies present! No Runnable Processes! Program terminating...");
+        		}
+        		numNodes = ProcessGraph.nodes.size();
         	}        	
         }
 
-        System.out.println("All process finished successfully");
+        if(complete){System.out.println("All process finished successfully");}
     }
     
     /*
