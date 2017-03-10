@@ -26,33 +26,35 @@ public class ProcessManagement {
         int numberOfUnRunnableProcesses = 0;
         int numNodes = ProcessGraph.nodes.size();
         boolean complete = true;
-        while(numNodes>0){																					// While there are nodes on the tree
-        	Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								
-        	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
-        		ProcessGraphNode indvNode = iter.next();													// and check
-        		if(!indvNode.isExecuted()){																	// If Node has not been executed
-            		if(indvNode.isRunnable()){																// and is runnable
-            			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
-            			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
-            			iter.remove();																		// After executing the command, the current node has been executed, and hence removed from the tree
-            			numberOfUnRunnableProcesses = 0;
-            		}else{
-            			numberOfUnRunnableProcesses ++;
-            		}
-            	}else{
-            		// Removes completed processes from the Process Graph
-            		// This helps to reduce the number of objects iterated through
-            		// the graph, and is used to reduce the size of the tree as the processes 
-            		// are executed, allowing program to terminate once all processes has been 
-            		// executed.
-            		iter.remove();
-            	}
-        		if(numberOfUnRunnableProcesses >= numNodes){
-        			System.out.println("Circular Dependencies present! No Runnable Processes! Program terminating...");
+    																				
+    	Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								// While there are nodes on the tree
+    	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
+    		ProcessGraphNode indvNode = iter.next();													// and check
+    		if(!indvNode.isExecuted()){																	// If Node has not been executed
+        		if(indvNode.isRunnable()){																// and is runnable
+        			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
+        			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
+        			iter.remove();																		// After executing the command, the current node has been executed, and hence removed from the tree
+        			numberOfUnRunnableProcesses = 0;
+        		}else{
+        			numberOfUnRunnableProcesses ++;
         		}
-        		numNodes = ProcessGraph.nodes.size();
-        	}        	
-        }
+        	}else{
+        		// Removes completed processes from the Process Graph
+        		// This helps to reduce the number of objects iterated through
+        		// the graph, and is used to reduce the size of the tree as the processes 
+        		// are executed, allowing program to terminate once all processes has been 
+        		// executed.
+        		iter.remove();
+        		numberOfUnRunnableProcesses = 0;
+        	}
+    		if(numberOfUnRunnableProcesses > numNodes){
+    			System.out.println("Circular Dependencies present! No Runnable Processes! Program terminating...");
+    			break;
+    		}
+    		numNodes = ProcessGraph.nodes.size();
+    	}        	
+    
 
         if(complete){System.out.println("All process finished successfully");}
     }
