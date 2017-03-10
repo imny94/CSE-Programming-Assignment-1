@@ -3,7 +3,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class ProcessManagement {
 
@@ -13,8 +15,17 @@ public class ProcessManagement {
     private static File instructionSet;// = new File("graph-file.txt");
     public static Object lock=new Object();
     public static boolean COMPLETE = true;
+    public static HashMap<String,String> optArgs;
 
     public static void main(String[] args) throws InterruptedException {
+    	if(args.length>1){
+    		String[] tempArg;
+    		optArgs = new HashMap<String,String>();
+    		for(int i =1;i<args.length;i++){
+    			tempArg = args[i].split("=");
+    			optArgs.put(tempArg[0],tempArg[1]);
+    		}
+    	}
     	
     	instructionSet = new File(args[0]); // This program will take the instruction set containing information on the graph given from the first argument given in the command line when this program is called.
 
@@ -106,9 +117,23 @@ public class ProcessManagement {
 
 			// close BufferedReader
 			br.close();
+			int TIMEOUT =15;
+			if(optArgs!=null && optArgs.containsKey("timeout")){
+				TIMEOUT = Integer.parseInt(optArgs.get("timeout"));
+			}
+			if(!p.waitFor(TIMEOUT, TimeUnit.SECONDS)){
+				System.out.println("Process timeout! Process took longer than 15 seconds to complete. \n" +
+									"Terminating Program...\n" +
+									"Check command given! \n" +
+									"Or if process requires more than "+TIMEOUT+" seconds for execution, add optional \"timeout=TIMEOUTVALUE\" argument when executing this program");
+				p.destroyForcibly();
+			}
 		} catch (IOException e) {									// If any an input/output errors are detected, print out the error messages.
 			e.printStackTrace();
 			COMPLETE = false;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
