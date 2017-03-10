@@ -34,7 +34,7 @@ public class ParseFile {
                 
                 index++;
             }
-            
+            int childId = 0;
             for(int j = 0;j<index;j++){																							// Iterate through all the nodes
             	if (!listOfChildrenId.get(j).equals("none")){ 																	// If there are children nodes for this particular node
                     String[] childrenStringArray=listOfChildrenId.get(j).split(" ");											// split up the given children IDs into IDs of each Child Node from 1 string to an Array
@@ -42,7 +42,12 @@ public class ParseFile {
                     for (int i = 0; i < childrenStringArray.length; i++) { 														// Iterates through the children IDs
 //                        childrenId[i]= Integer.parseInt(childrenStringArray[i]);					
 //                        ProcessGraph.addNode(childrenId[i]);
-                        ProcessGraph.nodes.get(j).addChild(ProcessGraph.nodes.get(Integer.parseInt(childrenStringArray[i])));	// and update all the nodes in the tree with each of their respective children if any
+                    	childId = Integer.parseInt(childrenStringArray[i]);
+                    	if(childId>=0 && childId<index){
+                    		ProcessGraph.nodes.get(j).addChild(ProcessGraph.nodes.get(childId));	// and update all the nodes in the tree with each of their respective children if any
+                    	}else{
+                    		System.out.println("Process "+j+" : There is no such child "+childId+" in the graph! Continuing...");
+                    	}
                     }
                 }
             }
