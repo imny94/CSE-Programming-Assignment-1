@@ -33,6 +33,11 @@ public class ProcessGraphNode {
     }
 
     public boolean isRunnable() {
+    	if(this.allParentsExecuted()){
+    		this.setRunnable();
+    	}else{
+    		this.setNotRunable();
+    	}
         return runnable;
     }
 
