@@ -31,12 +31,15 @@ public class ProcessManagement {
     		Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								// While there are nodes on the tree
         	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
         		ProcessGraphNode indvNode = iter.next();													// and check
+//        		System.out.println("Looping through "+indvNode.getNodeId());
         		if(!indvNode.isExecuted()){																	// If Node has not been executed
             		if(indvNode.isRunnable()){																// and is runnable
             			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
             			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
-            			iter.remove();																		// After executing the command, the current node has been executed, and hence removed from the tree
+            			indvNode.setExecuted();																	// After executing the command, the current node has been executed, and hence removed from the tree
+            			numNodes --;
             			numberOfUnRunnableProcesses = 0;
+//            			ProcessGraph.printBasic();
             		}else{
             			numberOfUnRunnableProcesses ++;
             		}
@@ -46,7 +49,8 @@ public class ProcessManagement {
             		// the graph, and is used to reduce the size of the tree as the processes 
             		// are executed, allowing program to terminate once all processes has been 
             		// executed.
-            		iter.remove();
+            		indvNode.setExecuted();
+            		numNodes --;
             		numberOfUnRunnableProcesses = 0;
             	}
         		if(numberOfUnRunnableProcesses > numNodes){
@@ -54,7 +58,6 @@ public class ProcessManagement {
         			COMPLETE = false;
         			break;
         		}
-        		numNodes = ProcessGraph.nodes.size();
         	}
         	if(!COMPLETE){break;}
     	}
