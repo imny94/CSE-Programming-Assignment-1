@@ -18,12 +18,13 @@ public class ProcessManagement {
     public static HashMap<String,String> optArgs;
 
     public static void main(String[] args) throws InterruptedException {
-    	if(args.length>1){
-    		String[] tempArg;
-    		optArgs = new HashMap<String,String>();
+    	
+    	if(args.length>1){																				// If there are optional arguments,
+    		String[] tempArg;																			
+    		optArgs = new HashMap<String,String>();														
     		for(int i =1;i<args.length;i++){
     			tempArg = args[i].split("=");
-    			optArgs.put(tempArg[0],tempArg[1]);
+    			optArgs.put(tempArg[0],tempArg[1]);														// store them in a hashmap with key and value for future use
     		}
     	}
     	
@@ -36,28 +37,28 @@ public class ProcessManagement {
         ProcessGraph.printGraph();
         
         int numberOfUnRunnableProcesses = 0;
-        int numNodes = ProcessGraph.nodes.size();
+        int numNodesNotExecuted = ProcessGraph.nodes.size();
         
-    	while(numNodes>0){
-    		Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								// While there are nodes on the tree
+    	while(numNodesNotExecuted>0){																		// While there are nodes on the tree that are not executed
+    		Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								
         	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
         		ProcessGraphNode indvNode = iter.next();													// and check
-//        		System.out.println("Looping through "+indvNode.getNodeId());
         		if(!indvNode.isExecuted()){																	// If Node has not been executed
             		if(indvNode.isRunnable()){																// and is runnable
-            			System.out.println("Executing node "+indvNode.getNodeId()+" with command : "+indvNode.getCommand());
+            			System.out.println("Executing node "+indvNode.getNodeId()+
+            								" with command : "+indvNode.getCommand());
             			execute(indvNode.getCommand(),indvNode.getInputFile(),indvNode.getOutputFile());	// Execute the given command using the input and output file given
-            			indvNode.setExecuted();																	// After executing the command, the current node has been executed, and hence removed from the tree
-            			numNodes --;
-            			numberOfUnRunnableProcesses = 0;
-//            			ProcessGraph.printBasic();
+            			indvNode.setExecuted();																// After executing the command, the current node has been executed, and hence marked as executed
+            			numNodesNotExecuted --;																// The number of nodes not executed will also be reduced by 1
+            			numberOfUnRunnableProcesses = 0;													// and the count for the number of processes will revert to 0 to re-check if any new processes are made runnable
             		}else{
-            			numberOfUnRunnableProcesses ++;
+            			numberOfUnRunnableProcesses ++;														// If node is currently not runnable, increase the count of the number of nodes that are not runnable 
             		}
             	}
-        		if(numberOfUnRunnableProcesses > numNodes){
-        			System.out.println("Circular Dependencies present! No Runnable Processes left! Program terminating...");
-        			COMPLETE = false;
+        		if(numberOfUnRunnableProcesses > numNodesNotExecuted){										// and if there are more nodes that not runnable than the number of nodes that are not executed,
+        			System.out.println("Circular Dependencies present! No Runnable Processes left! \n"		// There exists a circular dependency in the graph, preventing the different nodes from executing
+        								+ "Program terminating...");										// The program will terminate to avoid this deadlock situation,
+        			COMPLETE = false;																		// and mark the program as not having completed execution.
         			break;
         		}
         	}
@@ -66,7 +67,7 @@ public class ProcessManagement {
     	
     
 
-        if(COMPLETE){System.out.println("All process finished successfully");}
+        if(COMPLETE){System.out.println("All process finished successfully");}								// Inform user that all processes has been completed given that execution flow is completed
     }
     
     /*
@@ -93,18 +94,18 @@ public class ProcessManagement {
      */
 
 	private static void execute(String command, File inputFile, File outputFile) {
-		String[] commandList = command.split(" ");					// Split up the command string into it's constituent parts in an array
-		ProcessBuilder pBuilder = new ProcessBuilder(commandList);	// and pass this array of command and arguments into a ProcessBuilder, which is used to fork new processes in the Operating System,
-		pBuilder.directory(currentDirectory);						// in the current working directory of this program.
-		if(!inputFile.getName().equals("stdin")){					// If the input file is specified 
-			pBuilder.redirectInput(inputFile);						// set the input of the new process to the specified input file, 
-		}															// else, input file will be the standard input file.
-		if(!outputFile.getName().equals("stdout")){					// Similarly, if the output file is specified,
-			pBuilder.redirectOutput(outputFile);					// set the output of the new process to the specified output
-		}															// else, output file will be the standard output file.
+		String[] commandList = command.split(" ");															// Split up the command string into it's constituent parts in an array
+		ProcessBuilder pBuilder = new ProcessBuilder(commandList);											// and pass this array of command and arguments into a ProcessBuilder, which is used to fork new processes in the Operating System,
+		pBuilder.directory(currentDirectory);																// in the current working directory of this program.
+		if(!inputFile.getName().equals("stdin")){															// If the input file is specified 
+			pBuilder.redirectInput(inputFile);																// set the input of the new process to the specified input file, 
+		}																									// else, input file will be the standard input file.
+		if(!outputFile.getName().equals("stdout")){															// Similarly, if the output file is specified,
+			pBuilder.redirectOutput(outputFile);															// set the output of the new process to the specified output
+		}																									// else, output file will be the standard output file.
 		
 		try {
-			Process p = pBuilder.start();							// Once the directory, input and output are set, try to start the process with the given command and argument
+			Process p = pBuilder.start();																	// Once the directory, input and output are set, try to start the process with the given command and argument
 			// obtain the input stream
 			InputStream is = p.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
@@ -112,27 +113,27 @@ public class ProcessManagement {
 
 			// read what is returned by the command
 			String line;
-			while ( (line = br.readLine()) != null)					// we then read any input returned by the command
-				System.out.println(line);							// and print it out
+			while ( (line = br.readLine()) != null)															// we then read any input returned by the command
+				System.out.println(line);																	// and print it out
 
 			// close BufferedReader
 			br.close();
 			int TIMEOUT =15;
-			if(optArgs!=null && optArgs.containsKey("timeout")){
-				TIMEOUT = Integer.parseInt(optArgs.get("timeout"));
+			if(optArgs!=null && optArgs.containsKey("timeout")){											// If there are optional arguments for timeout
+				TIMEOUT = Integer.parseInt(optArgs.get("timeout"));											// Use that timeout value
 			}
-			if(!p.waitFor(TIMEOUT, TimeUnit.SECONDS)){
+			if(!p.waitFor(TIMEOUT, TimeUnit.SECONDS)){														// else, use the default value of 15 seconds
 				System.out.println("Process timeout! Process took longer than 15 seconds to complete. \n" +
 									"Terminating Program...\n" +
 									"Check command given! \n" +
-									"Or if process requires more than "+TIMEOUT+" seconds for execution, add optional \"timeout=TIMEOUTVALUE\" argument when executing this program");
-				p.destroyForcibly();
+									"Or if process requires more than "+TIMEOUT+" seconds for execution, "
+								+ "add optional \"timeout=TIMEOUTVALUE\" argument when executing this program");
+				p.destroyForcibly();																		// and terminate the process if it takes more than the timeout value, while printing relevant error messages
 			}
-		} catch (IOException e) {									// If any an input/output errors are detected, print out the error messages.
+		} catch (IOException e) {																			// If any an input/output errors are detected, print out the error messages.
 			e.printStackTrace();
 			COMPLETE = false;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+		} catch (InterruptedException e) {																	// If the process is interrupted in the middle of execution, print out the error messages.
 			e.printStackTrace();
 		}
 	}
