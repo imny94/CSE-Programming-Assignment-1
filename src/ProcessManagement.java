@@ -12,6 +12,7 @@ public class ProcessManagement {
     //set the instructions file
     private static File instructionSet;// = new File("graph-file.txt");
     public static Object lock=new Object();
+    public static boolean COMPLETE = true;
 
     public static void main(String[] args) throws InterruptedException {
     	
@@ -25,7 +26,7 @@ public class ProcessManagement {
         
         int numberOfUnRunnableProcesses = 0;
         int numNodes = ProcessGraph.nodes.size();
-        boolean complete = true;
+       
         while(numNodes>0){																					// While there are nodes on the tree
         	Iterator<ProcessGraphNode> iter = ProcessGraph.nodes.iterator();								
         	while(iter.hasNext()){																			// Keep looping through all the nodes on the tree 
@@ -54,7 +55,7 @@ public class ProcessManagement {
         	}        	
         }
 
-        if(complete){System.out.println("All process finished successfully");}
+        if(COMPLETE){System.out.println("All process finished successfully");}
     }
     
     /*
@@ -107,6 +108,7 @@ public class ProcessManagement {
 			br.close();
 		} catch (IOException e) {									// If any an input/output errors are detected, print out the error messages.
 			e.printStackTrace();
+			COMPLETE = false;
 		}
 	}
 
