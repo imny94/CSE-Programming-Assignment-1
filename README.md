@@ -44,7 +44,7 @@ files.
 
 The text file is colon delimited and in the following format:
 ```
-Command with arguments space delimited: All Dependencies space delimited : All Input Space Delimited : Output 
+Command with arguments space delimited: All Dependencies space delimited : All Inputs Space Delimited : Output 
 ```
 An Example would be:
 ```
