@@ -53,6 +53,15 @@ grep 3:6:cat-out.txt:grep-out.txt
 The ID of each node will be based on the order in which the nodes appears in the text file. A new line
 represents a new node.
 
+###Optional Arguments:
+The program can also take in the following optional arguments:
+timeout - Used to set the time given to a process to finish execution before it is terminated forcefully
+
+To use them, enter the following
+```java
+java ProcessManagement instructionset.txt timeout=DESIREDTIMEOUTVALUE
+```
+
 ## What will the program do:
 
 This program will read the graph representing the dependencies of various processes and, using that graph,
