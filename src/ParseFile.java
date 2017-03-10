@@ -16,6 +16,9 @@ public class ParseFile {
                     System.out.println("Wrong input format!");
                     throw new Exception();
                 }
+                for(int i = 0; i<quatiles.length;i++){
+                	quatiles[i] = quatiles[i].trim();
+                }
 
                 //add this node
                 ProcessGraph.addNode(index);
