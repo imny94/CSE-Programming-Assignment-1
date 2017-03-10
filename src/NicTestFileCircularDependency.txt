@@ -1,0 +1,7 @@
+echo "Starting up DAG":6:stdin:stdout
+sleep 3:2:stdin:stdout
+echo "Listing out all directories in current working directory":3:stdin:stdout
+ls:5:stdin:stdout
+grep .java:none:stdin:number-java-files.txt
+echo "counting number of java files":4:stdin:stdout
+echo "This has to be run before first node can":0:stdin:stdout
