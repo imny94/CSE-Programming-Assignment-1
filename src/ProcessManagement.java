@@ -1,3 +1,10 @@
+/*
+ * Programming Assignment 1
+ * Author : Nicholas Yeow Teng Mun
+ * ID : 1001490
+ * Date : 10/03/2017
+ */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -19,19 +26,19 @@ public class ProcessManagement {
 
     public static void main(String[] args) throws InterruptedException {
     	
-    	if(args.length>1){																				// If there are optional arguments,
+    	if(args.length>1){																					// If there are optional arguments,
     		String[] tempArg;																			
     		optArgs = new HashMap<String,String>();														
     		for(int i =1;i<args.length;i++){
     			tempArg = args[i].split("=");
-    			optArgs.put(tempArg[0],tempArg[1]);														// store them in a hashmap with key and value for future use
+    			optArgs.put(tempArg[0],tempArg[1]);															// store them in a hashmap with key and value for future use
     		}
     	}
     	
-    	instructionSet = new File(args[0]); // This program will take the instruction set containing information on the graph given from the first argument given in the command line when this program is called.
-
-        //parse the instruction file and construct a data structure, stored inside ProcessGraph class
-        ParseFile.generateGraph(new File(currentDirectory +File.separator+instructionSet));
+    	instructionSet = new File(args[0]); 																// This program will take the instruction set containing information on the graph given 
+    																										// from the first argument given in the command line when this program is called.
+        
+        ParseFile.generateGraph(new File(currentDirectory +File.separator+instructionSet));					// It will then parse the instruction file and construct a data structure, stored inside ProcessGraph class
 
         // Print the graph information
         ProcessGraph.printGraph();
