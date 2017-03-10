@@ -45,7 +45,7 @@ public class ProcessManagement {
             		}
             	}
         		if(numberOfUnRunnableProcesses > numNodes){
-        			System.out.println("Circular Dependencies present! No Runnable Processes! Program terminating...");
+        			System.out.println("Circular Dependencies present! No Runnable Processes left! Program terminating...");
         			COMPLETE = false;
         			break;
         		}
