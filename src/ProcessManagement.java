@@ -43,15 +43,6 @@ public class ProcessManagement {
             		}else{
             			numberOfUnRunnableProcesses ++;
             		}
-            	}else{
-            		// Removes completed processes from the Process Graph
-            		// This helps to reduce the number of objects iterated through
-            		// the graph, and is used to reduce the size of the tree as the processes 
-            		// are executed, allowing program to terminate once all processes has been 
-            		// executed.
-            		indvNode.setExecuted();
-            		numNodes --;
-            		numberOfUnRunnableProcesses = 0;
             	}
         		if(numberOfUnRunnableProcesses > numNodes){
         			System.out.println("Circular Dependencies present! No Runnable Processes! Program terminating...");
