@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import AuthenticationConstants.ACs;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,49 +21,65 @@ import java.security.cert.X509Certificate;
 public class CP1Client {
 
 	public static void main(String[] args) throws IOException, InvalidKeyException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+		System.out.println("trying to connect");
 		String hostName = "10.12.21.29";
 		int portNumber = 7777;
 		Socket echoSocket = new Socket();
 		SocketAddress sockaddr = new InetSocketAddress(hostName, portNumber);
 		echoSocket.connect(sockaddr, 8080);
+		System.out.println("connected");
 		PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
 		BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-		String initialMessage = "Hello SecStore, prove your ID";
+		String initialMessage = ACs.AUTHENTICATIONMSG;
 		out.println(initialMessage);
 		out.flush();
 		String serverInitialReply = in.readLine();
-		String serverSecondMessage = "Give me your signed Certificate";
+		System.out.println("gave me secret message");
+		String serverSecondMessage = ACs.REQUESTSIGNEDCERT;
 		out.println(serverSecondMessage);
 		out.flush();
 		String signedCertificate = in.readLine();
-		if (!signedCertificate.equals("1234567890") || !initialMessage.equals("I am SecStore")){
-			out.println("Bye");
+		System.out.println("gave me signed certificate");
+		//extract public key from signed certificate
+		
+		
+		//use public key to decrypt serverInitialReply
+		
+		
+		//if serverInitialReply is correct, then proceed to give my encrypted client ID
+		if (!signedCertificate.equals(ACs.SIGNEDCERT) || !serverInitialReply.equals(ACs.SERVERID)){
+			out.println(ACs.TERMINATEMSG);
 			out.flush();
 			return;
 		} else {
-			out.println("I am client");
+			out.println(ACs.CLIENTID);
 			out.flush();
 		}
+		System.out.println("decryption of secret message is complete");
+		
+		//proceed to send my public key
 		String serverThirdMessage = in.readLine();
-		if (!serverThirdMessage.equals("")){
-			//
+		if (!serverThirdMessage.equals(ACs.REQUESTCLIENTPUBLICKEY)){
+			out.println(ACs.TERMINATEMSG);
+			out.flush();	
 		} else {
-			out.println("Sending public key");
+			out.println(ACs.CLIENTPUBLICKEY);
 			out.flush();
 		}
+		System.out.println("sent my public key");
 		
-		/*
-		//extract public key from signed certificate
-		PublicKey pk = ExtractPublicKeyFromSignedCertificate(signedCertificate);
-		
-		//use the public key to decrypt serverInitialReply
-		String decryptedMessage = DecryptInitialReply(serverInitialReply, pk);
-		if (!decryptedMessage.equals("I am SecStore")){
-			//abort mission
+		//if pass, then do handshake to send files
+		String serverFourthMessage = in.readLine();
+		if (serverFourthMessage.equals(ACs.SERVERREADYTORECEIVE)){
+			//proceed
+			System.out.println("everything works, proceed to shake hand");
+		} else {
+			System.out.println("didnt work");
 		}
-		//send i want to upload ...
-		 * 
-		 */
+		
+		
+		
+		
 	}
 	
 	public static PublicKey ExtractPublicKeyFromSignedCertificate(String signedCertificate) throws FileNotFoundException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException{
