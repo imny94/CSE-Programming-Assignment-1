@@ -8,11 +8,14 @@ public final class ACs {
 	public static final String TERMINATEMSG = "Bye";
 	public static final String CLIENTID = "I am client";
 	public static final String CLIENTPUBLICKEY = "Client Public key";
+	public static final String CLIENTDONE = "Transmission is over";
+	public static final String CLIENTONEFILESENT = "Sent one file";
 	
 	// Server
 	public static final String SERVERID = "I am SecStore";
 	public static final String SIGNEDCERT = "1234567890";
 	public static final String REQUESTCLIENTPUBLICKEY = "Send me your public key";
 	public static final String SERVERREADYTORECEIVE = "Ready to receive your file";
-	
+	public static final String SERVERRECEIVED = "Thank your for sending"
+;	
 }

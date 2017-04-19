@@ -1,27 +1,37 @@
 package Server;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -39,80 +49,125 @@ public class ServerClass {
 		return true;
 	}
 	
+	public static PublicKey getPublicKey(String key){
+	    try{
+	        byte[] byteKey = Base64.getDecoder().decode(key);
+	        X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
+	        KeyFactory kf = KeyFactory.getInstance("RSA");
+
+	        return kf.generatePublic(X509publicKey);
+	    }
+	    catch(Exception e){
+	        e.printStackTrace();
+	    }
+
+	    return null;
+	}
+	
 	private static boolean terminateConnection(PrintWriter out){
 		out.println(ACs.TERMINATEMSG);
 		return false;
 	}
-	
-	private static boolean authenticateClient(String encryptedID, String clientPBKey, Cipher rsaCipher) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-		//TODO: apply public key on sncryptedID and compare to expected value
-//		if(encryptedID.equals(ACs.CLIENTID)){
-//			return true;
-//		}
-		
-		byte[] clientPBKeyBytes = DatatypeConverter.parseBase64Binary(clientPBKey);
-		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(clientPBKeyBytes);
-		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		PublicKey publicKey = keyFactory.generatePublic(keySpec);
-		byte[] encryptedIDBytes = DatatypeConverter.parseBase64Binary(encryptedID);
-		rsaCipher.init(Cipher.DECRYPT_MODE, publicKey);
-		if(rsaCipher.doFinal(encryptedIDBytes).equals(ACs.CLIENTID.getBytes()) ){
-			return true;
-		}
-		
-		return false;
-	}
-	
-	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaCipher, PrivateKey privateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-		
+
+	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaECipher) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+
 		System.out.println("Starting authentication protocol");
 		
-		if(!(in.readLine()).equals(ACs.AUTHENTICATIONMSG )){
-			System.out.println("Authenticaion message error!");
-			return terminateConnection(out);
-		}
+		byte[] clientNonceInBytes = new byte[32];
+		String clientNonce = in.readLine();
+		clientNonceInBytes = DatatypeConverter.parseBase64Binary(clientNonce);	    
 		
-	    rsaCipher.init(Cipher.ENCRYPT_MODE, privateKey);
-	    
-		// TODO: encrypt server ID
-		sendMsg(out,DatatypeConverter.printBase64Binary(rsaCipher.doFinal(ACs.SERVERID.getBytes("UTF-16"))));
+		byte[] encryptedNonce = rsaECipher.doFinal(clientNonceInBytes);
+		out.println(DatatypeConverter.printBase64Binary(encryptedNonce));
+		out.flush();
 		
 		if(!(in.readLine().equals(ACs.REQUESTSIGNEDCERT ))){
 			System.out.println("Request Signed Certificate Error!");
 			return terminateConnection(out);
 		}
 		
-		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\1001670.der";
-		byte[] certBytes = Files.readAllBytes(new File(serverCertPath).toPath());
+		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\1001490.crt";
+		File certFile = new File(serverCertPath);
+		byte[] certBytes = new byte[(int) certFile.length()];
+		BufferedInputStream certFileInput = new BufferedInputStream(new FileInputStream(certFile));
+		certFileInput.read(certBytes,0,certBytes.length);
+		certFileInput.close();
 		
 		// Prepping client to receive certificate in bytes
+		System.out.println("Sending size of cert to client : " + certBytes.length);
 		out.println(Integer.toString(certBytes.length) );	
 		out.flush();
 		// Sending signed cert of server - includes public key of client
-		out.println(certBytes);
+		System.out.println("Sending certificate in string : ");
+		out.println(DatatypeConverter.printBase64Binary(certBytes));
 		out.flush();
 		
-		// Reads in the clientsID encrypted with client's private key
+		// Generate nonce to ensure that client is a valid requester, and not a playback attacker
+		byte[] serverNonce = new byte[32];
+		Random randGen = SecureRandom.getInstanceStrong();
+		randGen.nextBytes(serverNonce);
+		String serverNonceString = new String(serverNonce, "UTF-16");
+	
+		 System.out.println("Sending nonce to client");
+		 out.println(DatatypeConverter.printBase64Binary(serverNonce));
+		 
+		 byte[] encryptedServerNonce = new byte[128];
+		 encryptedServerNonce = DatatypeConverter.parseBase64Binary(in.readLine());
+		System.out.println("Received nonce encrypted with client's private key");
 		
-		String encryptedClientID = in.readLine();	
-		
+		System.out.println("Requesting for client public key");
 		sendMsg(out,ACs.REQUESTCLIENTPUBLICKEY);
 		
-		String clientPublicKey = in.readLine();
+		String clientPublicKeyString = in.readLine();
+		System.out.println("Received client's public key : " + clientPublicKeyString);
 		
-		if(!authenticateClient(encryptedClientID, clientPublicKey, rsaCipher)){
-			System.out.println("Client Authentication Error!");
-			return terminateConnection(out);
+		Cipher rsaDCipherClientPublic = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		
+		Key clientPublicKey = getPublicKey(clientPublicKeyString);
+		rsaDCipherClientPublic.init(Cipher.DECRYPT_MODE, clientPublicKey);
+		
+		byte[] decryptedServerNonce = rsaDCipherClientPublic.doFinal(encryptedServerNonce);
+		String decryptedNonceString = new String(decryptedServerNonce, "UTF-16");
+		if(!decryptedNonceString.equals(serverNonceString)){
+		   	 System.out.println("Client authentication failed!");
+		   	 return terminateConnection(out);
 		}
 		
+		System.out.println("Completed authentication protocol, server ready to receive files");
 		sendMsg(out,ACs.SERVERREADYTORECEIVE);
 		
-		System.out.println("Completed authentication protocol");
 		
 		return true;
 	}
 	
-	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+	public static byte[] decryptFile(byte[] encryptedData, Cipher rsaDecryptionCipher) throws Exception{
+		
+		System.out.println("Decrypting client's files ... ");
+		
+		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+
+	    int start = 0;
+	    int fileSize = encryptedData.length;
+	    while (start < fileSize) {
+	        byte[] tempBuff;
+	        if (fileSize - start >= 128) {
+	            tempBuff = rsaDecryptionCipher.doFinal(encryptedData, start, 128);
+	        } else {
+	            tempBuff = rsaDecryptionCipher.doFinal(encryptedData, start, fileSize - start);
+	        }
+	        byteOutput.write(tempBuff, 0, tempBuff.length);
+	        start += 128;
+	    }
+	    byte[] decryptedFileBytes = byteOutput.toByteArray();
+	    byteOutput.close();
+	    
+	    System.out.println("Decryption complete");
+	    return decryptedFileBytes;
+
+
+	  }
+	
+	public static void main(String[] args) throws Exception{
 		
 		//String hostName = args[0];
 		//int portNum = Integer.parseInt(args[1]);
@@ -121,37 +176,74 @@ public class ServerClass {
 		ServerSocket serverSocket;
 		Socket clientSocket;		
 		serverSocket = new ServerSocket(portNum);
-		File serverPrivateKey = new File("D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\privateServer.der");
 		
-		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Files.readAllBytes(
-																serverPrivateKey.toPath() ));
-		System.out.println(keySpec);
+		String privateKeyFileName = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\privateServerNic.der";
+	    Path keyPath = Paths.get(privateKeyFileName);
+	    byte[] privateKeyByteArray = Files.readAllBytes(keyPath);
+	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
+		
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 		
 		// Create encryption cipher
-		Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		Cipher rsaECipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		Cipher rsaDCipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		
+		rsaECipherPrivate.init(Cipher.ENCRYPT_MODE, privateKey);
+		rsaDCipherPrivate.init(Cipher.DECRYPT_MODE, privateKey);
 		
 		System.out.println("Accepting client connections now ...");
 		clientSocket = serverSocket.accept();
 		System.out.println("Client connection established!");
-		// in will receive input as byte[]
+
 		BufferedReader in = new BufferedReader(
 								new InputStreamReader(
 										new DataInputStream(clientSocket.getInputStream())));
 		PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		
-		boolean proceed = authenticationProtocol(in,out,rsaCipher, privateKey);
+		boolean proceed = authenticationProtocol(in,out,rsaECipherPrivate);
 		
 		if(!proceed){
 			System.out.println("Authentication protocol failed!");
+			serverSocket.close();
+			return;
 		}
 		
-		System.out.println("Waiing for encrypted file from client");
+		System.out.println("Waiting for encrypted file from client");
+		Map<String,Long> fileUploadTimings = new HashMap<String, Long>();
+		boolean clientDone = false;
+		
+		do{
+			long startTime = System.currentTimeMillis();
+			String clientsFileName = in.readLine();
+			System.out.println("Received client's file name");
+	        int clientFileSize = Integer.parseInt(in.readLine());
+	        System.out.println("File size " + clientFileSize);
+	        byte[] encryptedDataFile = new byte[clientFileSize];
+
+	        // Read in encrypted file String representation
+	        
+			String clientEncryptedFileString = in.readLine();
+			System.out.println("Received client's encrypted file");
+			encryptedDataFile = DatatypeConverter.parseBase64Binary(clientEncryptedFileString);
+			
+			byte[] clientDecryptedFileBytes = decryptFile(encryptedDataFile,rsaDCipherPrivate);
+			FileOutputStream fileOutput = new FileOutputStream(clientsFileName);
+	        fileOutput.write(clientDecryptedFileBytes, 0, clientDecryptedFileBytes.length);
+	        fileOutput.close();
+	        System.out.println("Successfully saved client's file!");
+	        clientDone = ACs.CLIENTDONE.equals(in.readLine());
+	        System.out.println("Does client have more files to send? " + clientDone);
+			long endTime = System.currentTimeMillis();
+			long elapsedTime = endTime-startTime;
+			fileUploadTimings.put(clientsFileName, elapsedTime);
+		}while(!clientDone);
+		
+		
 		
 		serverSocket.close();
 		
-		
+		System.out.println(fileUploadTimings.toString());
 		
 		
 	}
