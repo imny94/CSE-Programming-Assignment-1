@@ -1,5 +1,6 @@
 package Client;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -45,7 +46,7 @@ public class CP1Client {
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("trying to connect");
-		String hostName = "10.12.21.29";
+		String hostName = "10.12.145.110";
 		int portNumber = 7777;
 		Socket echoSocket = new Socket();
 		SocketAddress sockaddr = new InetSocketAddress(hostName, portNumber);
@@ -177,11 +178,12 @@ public class CP1Client {
 		}
 		
 		System.out.println("initialising handshake");
+		String[] argsNic = {"smallFile.txt","medianFile.txt","largeFile.txt"};
 		
 		//use server's public key to encrypt the clients files and send it back to server
-		for (int i = 0; i < args.length; i++){
+		for (int i = 0; i < argsNic.length; i++){
 			//tell server this is the starting time
-			File fileToBeSent = new File(args[i]);
+			File fileToBeSent = new File(argsNic[i]);
 			byte[] fileBytes = new byte[(int)fileToBeSent.length()];
 			BufferedInputStream fileInput = new BufferedInputStream(new FileInputStream(fileToBeSent));
 			fileInput.read(fileBytes,0,fileBytes.length);
@@ -191,11 +193,11 @@ public class CP1Client {
 			Cipher Ecipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			Ecipher2.init(Cipher.ENCRYPT_MODE, CAkey);
 			byte[] encryptedFile = encryptFile(fileBytes, Ecipher2);
-			out.println(args[i]);
+			out.println(argsNic[i]);
 			out.println(Integer.toString(encryptedFile.length));
 			//String encryptedFileInString = new String(encryptedFile, "UTF-16");
 			out.println(DatatypeConverter.printBase64Binary(encryptedFile));
-			System.out.println("successfully sent over " + args[i]);
+			System.out.println("successfully sent over " + argsNic[i]);
 		}
 		out.println(ACs.CLIENTDONE);
 		System.out.println("told server all ecnrypted files are sent");
