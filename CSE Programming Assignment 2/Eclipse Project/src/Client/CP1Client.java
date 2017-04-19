@@ -1,6 +1,5 @@
 package Client;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -124,6 +123,7 @@ public class CP1Client {
 			return;
 		} 
 		System.out.println("successfully authenticated the server");
+
 		
 		//generate keypair here
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");

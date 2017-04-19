@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/Client/CP1Client.java</name>
+			<type>1</type>
+			<location>D:/Backup/SUTD/ISTD/Computer Systems Engineering/CSE-Programming-Assignments/CSE Programming Assignment 2/Eclipse Project/src/Client/CP1Client.java</location>
+		</link>
+	</linkedResources>
 </projectDescription>
