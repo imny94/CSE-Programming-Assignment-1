@@ -26,6 +26,4 @@ To run the CP1 codes first, one must run the CP1Server.java first on one compute
 
 Repeat the same process for CP2 codes. 
 ## Outcomes and Results:
-![alt text][graph1]
-
-[graph1]:"https://github.com/imny94/CSE-Programming-Assignments/CSE Programming Assignment 2/CPComputationTime.png" "Logo Title Text 1"
+![alt text](CSE-Programming-Assignments/CSE-Programming-Assignment-2/CPComputationTime.png "Logo Title Text 1")
