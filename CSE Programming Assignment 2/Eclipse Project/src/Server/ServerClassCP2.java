@@ -37,11 +37,13 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
 import AuthenticationConstants.ACs;	// Authentication Constants
 
-public class ServerClass {
+public class ServerClassCP2 {
 	
 	private static boolean sendMsg(PrintWriter out,String msg){
 		out.println(msg);
@@ -49,7 +51,7 @@ public class ServerClass {
 		return true;
 	}
 	
-	public static PublicKey getPublicKey(String key){
+	private static PublicKey getPublicKey(String key){
 	    try{
 	        byte[] byteKey = Base64.getDecoder().decode(key);
 	        X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
@@ -62,6 +64,13 @@ public class ServerClass {
 	    }
 
 	    return null;
+	}
+	
+	private static Key getAESKey(String AESKeyString, Cipher rsaDCipher) throws IllegalBlockSizeException, BadPaddingException {
+		byte[] byteKey = DatatypeConverter.parseBase64Binary(AESKeyString);
+		byte[] decryptedByteKey = rsaDCipher.doFinal(byteKey);
+		SecretKey sessionKey = new SecretKeySpec(decryptedByteKey, 0, decryptedByteKey.length, "AES");
+		return sessionKey;
 	}
 	
 	private static boolean terminateConnection(PrintWriter out){
@@ -140,7 +149,7 @@ public class ServerClass {
 		return true;
 	}
 	
-	public static byte[] decryptFile(byte[] encryptedData, Cipher rsaDecryptionCipher) throws Exception{
+	private static byte[] decryptFile(byte[] encryptedData, Cipher rsaDecryptionCipher) throws Exception{
 		
 		System.out.println("Decrypting client's files ... ");
 		
@@ -209,6 +218,13 @@ public class ServerClass {
 			return;
 		}
 		
+		System.out.println("Waiting for encrypted AES Key from client");
+		String AESKeyString = in.readLine();
+		Key AESKey = getAESKey(AESKeyString,rsaDCipherPrivate);
+		
+		Cipher AESCipher = Cipher.getInstance("AES");
+		AESCipher.init(Cipher.DECRYPT_MODE, AESKey);
+		
 		System.out.println("Waiting for encrypted file from client");
 		Map<String,Long> fileUploadTimings = new HashMap<String, Long>();
 		boolean clientDone = false;
@@ -227,7 +243,11 @@ public class ServerClass {
 			System.out.println("Received client's encrypted file");
 			encryptedDataFile = DatatypeConverter.parseBase64Binary(clientEncryptedFileString);
 			
-			byte[] clientDecryptedFileBytes = decryptFile(encryptedDataFile,rsaDCipherPrivate);
+			FileOutputStream fileOutputEncrypted = new FileOutputStream(	clientsFileName+"Encrypted");
+			fileOutputEncrypted.write(encryptedDataFile, 0, encryptedDataFile.length);
+			fileOutputEncrypted.close();
+			
+			byte[] clientDecryptedFileBytes = decryptFile(encryptedDataFile,AESCipher);
 			FileOutputStream fileOutput = new FileOutputStream(clientsFileName);
 	        fileOutput.write(clientDecryptedFileBytes, 0, clientDecryptedFileBytes.length);
 	        fileOutput.close();
@@ -247,14 +267,18 @@ public class ServerClass {
 		
 		
 	}
-}
+	
+	class OpenConnections implements Runnable{
 
-class OpenConnections implements Runnable{
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
+
 	
 }
+
+

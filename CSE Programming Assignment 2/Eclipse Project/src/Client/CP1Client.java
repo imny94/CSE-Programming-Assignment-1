@@ -197,8 +197,8 @@ public class CP1Client {
 			//String encryptedFileInString = new String(encryptedFile, "UTF-16");
 			out.println(DatatypeConverter.printBase64Binary(encryptedFile));
 
-			System.out.println("successfully sent over " + args[i]);
-			if((i+1)<args.length) {
+			System.out.println("successfully sent over " + argsNic[i]);
+			if((i+1)<argsNic.length) {
 				out.println(ACs.CLIENTONEFILESENT);
 			}else{
 				out.println(ACs.CLIENTDONE);
