@@ -12,6 +12,7 @@ public final class ACs {
 	// Server
 	public static final String SERVERID = "I am SecStore";
 	public static final String SIGNEDCERT = "1234567890";
-	public static final String REQUESTCLIENTPUBLICKEY = "Send me your public key";	
+	public static final String REQUESTCLIENTPUBLICKEY = "Send me your public key";
+	public static final String SERVERREADYTORECEIVE = "Ready to receive your file";
 	
 }
