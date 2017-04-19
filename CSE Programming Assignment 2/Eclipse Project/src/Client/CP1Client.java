@@ -1,3 +1,5 @@
+package Client;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 
@@ -35,7 +37,7 @@ public class CP1Client {
 
 	public static void main(String[] args) throws IOException, InvalidKeyException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		System.out.println("trying to connect");
-		String hostName = "10.12.21.29";
+		String hostName = "127.0.0.1";//"10.12.21.29";
 		int portNumber = 7777;
 		Socket echoSocket = new Socket();
 		SocketAddress sockaddr = new InetSocketAddress(hostName, portNumber);
@@ -98,7 +100,7 @@ public class CP1Client {
 		//encrypt clientId 
 		
 		//get public key 
-		Path keyPath = Paths.get("publicServer.der");
+		Path keyPath = Paths.get("D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\publicServer.der");
 		byte[] publicKeyInBytes = Files.readAllBytes(keyPath);
 		
 		out.println(ACs.CLIENTID);
