@@ -1,5 +1,6 @@
 package Client;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -123,7 +124,6 @@ public class CP1Client {
 			return;
 		} 
 		System.out.println("successfully authenticated the server");
-
 		
 		//generate keypair here
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -196,14 +196,19 @@ public class CP1Client {
 			//String encryptedFileInString = new String(encryptedFile, "UTF-16");
 			out.println(DatatypeConverter.printBase64Binary(encryptedFile));
 			System.out.println("successfully sent over " + args[i]);
+			if((i+1)<args.length) {
+				out.println(ACs.CLIENTONEFILESENT);
+			}else{
+				out.println(ACs.CLIENTDONE);
+			}
 		}
-		out.println(ACs.CLIENTDONE);
 		System.out.println("told server all ecnrypted files are sent");
-		
+		/*
 		//wait for server to reply to be done
 		String serverReceiveMessage = in.readLine();
+		System.out.println(serverReceiveMessage);
 		if (!serverReceiveMessage.equals(ACs.SERVERRECEIVED)){
-			out.println("you didn't tell me you received my files");
+			System.out.println("you didn't tell me you received my files");
 			out.flush();
 			out.close();
 			in.close();
@@ -211,6 +216,7 @@ public class CP1Client {
 			return;
 		}
 		System.out.println("Done!");
+		*/
 		
 	}
 	
