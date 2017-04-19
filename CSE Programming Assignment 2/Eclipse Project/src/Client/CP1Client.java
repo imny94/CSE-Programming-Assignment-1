@@ -1,14 +1,21 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+
 import AuthenticationConstants.ACs;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -18,9 +25,15 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.xml.bind.DatatypeConverter;
+
 public class CP1Client {
 
-	public static void main(String[] args) throws IOException, InvalidKeyException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+	public static void main(String[] args) throws IOException, InvalidKeyException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		System.out.println("trying to connect");
 		String hostName = "10.12.21.29";
 		int portNumber = 7777;
@@ -29,24 +42,70 @@ public class CP1Client {
 		echoSocket.connect(sockaddr, 8080);
 		System.out.println("connected");
 		PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
+		//DataInputStream inData = new DataInputStream((echoSocket.getInputStream()));
+		//DataInputStream in = new DataInputStream(new InputStreamReader(echoSocket.getInputStream()));
 		BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+		//InputStream in = echoSocket.getInputStream();
+		//OutputStream out = echoSocket.getOutputStream();
+		
+		//send message and receive encrypted message
 		String initialMessage = ACs.AUTHENTICATIONMSG;
 		out.println(initialMessage);
 		out.flush();
 		String serverInitialReply = in.readLine();
 		System.out.println("gave me secret message");
-		String serverSecondMessage = ACs.REQUESTSIGNEDCERT;
-		out.println(serverSecondMessage);
-		out.flush();
-		String signedCertificate = in.readLine();
-		System.out.println("gave me signed certificate");
-		//extract public key from signed certificate
 		
+		//send request for cert and receive signed cert
+		String secondMessage = ACs.REQUESTSIGNEDCERT;
+		out.println(secondMessage);
+		out.flush();
+		String sizeInString = in.readLine();
+		int certificateSize = Integer.parseInt(sizeInString);
+		byte[] signedCertificate = new byte[certificateSize];
+		signedCertificate = DatatypeConverter.parseBase64Binary(in.readLine());
+		System.out.println("gave me signed certificate");
+		
+		//extract public key from signed certificate
+		//creating X509 certificate object
+		FileOutputStream fileOutput = new FileOutputStream("CA.crt");
+        fileOutput.write(signedCertificate, 0, certificateSize);
+        FileInputStream certFileInput = new FileInputStream("CA.crt");
+         
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		X509Certificate CAcert = (X509Certificate)cf.generateCertificate(certFileInput);
+						
+		//extract public key from the certificate 
+		PublicKey CAkey = CAcert.getPublicKey();				
+		CAcert.checkValidity();
+		CAcert.verify(CAkey);
 		
 		//use public key to decrypt serverInitialReply
-		
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.DECRYPT_MODE, CAkey);
+		byte[] decryptedBytes = cipher.doFinal(DatatypeConverter.parseBase64Binary(serverInitialReply));
+		String decryptedMessage = DatatypeConverter.printBase64Binary(decryptedBytes);
+		System.out.println("message decrypted" + decryptedMessage);
 		
 		//if serverInitialReply is correct, then proceed to give my encrypted client ID
+		if (!decryptedMessage.equals(ACs.SERVERID)){
+			out.println(ACs.TERMINATEMSG);
+			out.close();
+			in.close();
+			echoSocket.close();
+			return;
+		} 
+		System.out.println("successfully authenticated the server");
+		//encrypt clientId 
+		
+		//get public key 
+		Path keyPath = Paths.get("publicServer.der");
+		byte[] publicKeyInBytes = Files.readAllBytes(keyPath);
+		
+		out.println(ACs.CLIENTID);
+		out.flush();
+		
+		
+		/*
 		if (!signedCertificate.equals(ACs.SIGNEDCERT) || !serverInitialReply.equals(ACs.SERVERID)){
 			out.println(ACs.TERMINATEMSG);
 			out.flush();
@@ -56,55 +115,37 @@ public class CP1Client {
 			out.flush();
 		}
 		System.out.println("decryption of secret message is complete");
+		*/
+		
+		
 		
 		//proceed to send my public key
-		String serverThirdMessage = in.readLine();
+		//int serverThirdMessage = in.read();
+		/*
 		if (!serverThirdMessage.equals(ACs.REQUESTCLIENTPUBLICKEY)){
-			out.println(ACs.TERMINATEMSG);
+			out.print(ACs.TERMINATEMSG);
 			out.flush();	
 		} else {
 			out.println(ACs.CLIENTPUBLICKEY);
 			out.flush();
 		}
+		
 		System.out.println("sent my public key");
+		*/
+		
+		
 		
 		//if pass, then do handshake to send files
-		String serverFourthMessage = in.readLine();
+		//int serverFourthMessage = in.read();
+		/*
 		if (serverFourthMessage.equals(ACs.SERVERREADYTORECEIVE)){
 			//proceed
 			System.out.println("everything works, proceed to shake hand");
 		} else {
 			System.out.println("didnt work");
 		}
-		
-		
-		
-		
-	}
-	
-	public static PublicKey ExtractPublicKeyFromSignedCertificate(String signedCertificate) throws FileNotFoundException, CertificateException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException{
-		//creating X509 certificate object
-		InputStream fis = new FileInputStream("/Users/G/Documents/50.005 CSE/NS Programming Assignment/CA(1).crt");
-		
-		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		X509Certificate CAcert = (X509Certificate)cf.generateCertificate(fis);
-				
-		//extract public key from the certificate 
-		PublicKey CAkey = CAcert.getPublicKey();
-		/*
-		Certificate servertCert;
-		//check validity and verify signed certificate
-		serverCert.checkValidity();
-		serverCert.verify(CAkey);	
 		*/
-		
-		return CAkey;
-		
 	}
-	
-	public static String DecryptInitialReply(String secretMessage, PublicKey pk){
-		
-		return "";
-	}
+
 
 }
