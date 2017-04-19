@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -28,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +42,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.xml.bind.DatatypeConverter;
 
 import AuthenticationConstants.ACs;	// Authentication Constants
+import CSV.CSVUtils;
 
 public class ServerClassCP1 {
 	
@@ -213,6 +216,10 @@ public class ServerClassCP1 {
 		Map<String,Long> fileUploadTimings = new HashMap<String, Long>();
 		boolean clientDone = false;
 		
+		String csvFile = "CP1Timings.csv";
+        FileWriter writer = new FileWriter(csvFile,true);
+        CSVUtils.writeLine(writer, Arrays.asList("File Size", "Time Taken (ms)"));
+		
 		do{
 			long startTime = System.currentTimeMillis();
 			String clientsFileName = in.readLine();
@@ -236,10 +243,11 @@ public class ServerClassCP1 {
 	        System.out.println("Does client have more files to send? " + clientDone);
 			long endTime = System.currentTimeMillis();
 			long elapsedTime = endTime-startTime;
-			fileUploadTimings.put(clientsFileName, elapsedTime/1000);
+			fileUploadTimings.put(clientsFileName, elapsedTime);
+			CSVUtils.writeLine(writer, Arrays.asList(Integer.toString(clientFileSize), Long.toString(elapsedTime)));
 		}while(!clientDone);
 		
-		
+		writer.close();
 		
 		serverSocket.close();
 		
@@ -260,5 +268,7 @@ public class ServerClassCP1 {
 
 	
 }
+
+
 
 
