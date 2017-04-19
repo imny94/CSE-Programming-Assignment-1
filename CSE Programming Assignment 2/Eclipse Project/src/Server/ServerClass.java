@@ -236,7 +236,7 @@ public class ServerClass {
 	        System.out.println("Does client have more files to send? " + clientDone);
 			long endTime = System.currentTimeMillis();
 			long elapsedTime = endTime-startTime;
-			fileUploadTimings.put(clientsFileName, elapsedTime);
+			fileUploadTimings.put(clientsFileName, elapsedTime/1000);
 		}while(!clientDone);
 		
 		
