@@ -29,13 +29,14 @@ CP2 implements symmetric key cryptography using AES.
 To compare the performance between the 2 different confidentiality protocols,their respective runtimes are computed and plotted in a graph to compare their speeds. The outcomes can be found at the last section of this page.  
 
 ## How to Compile the program on Eclipse:
-To compile the program on Eclipse, one must have two different machines with active Internet connection. Before running the program, one must change the I.P address of which the client connects to. Simply look for hostName at line 49 of the respective client programs and change the I.P address to which server is currently listening on. 
-``` java
-String hostName = "XX.XX.XX.XX";  // Enter the IP Address of the server here
-```
-One must also modify the run configurations of the client code. All 3 smallFile.txt, medianFile.txt and largeFile.txt file paths must be included as arguments to be parsed into the main method. 
+To compile the program on Eclipse, one must have two different machines with active Internet connection. Before running the program, one must change the I.P address of which the client connects to. One can do so by modifying the run configurations of the client code. The input to the run configurations should be in the following order: 1) hostName, 2) portNumber, 3)path to smallFile.txt, 4) path to medianFile.txt, 5) path to largeFile.txt. 
 
-To run the CP1 codes first, one must run the CP1Server.java first on one computer before the other computer can run the CP1Client.java. If the client computer fails to connect to the server within 8080ms, the program will throw an timeout error. Both programs should run automatically until the end without errors. The CP1Server.java will print the total time taken for the file to be encrypted on the client, sent to the server, and then finally decrypted by the server. The server will receive the encrypted file, decrypt it and save it on its own local computer.
+Below is an example of how the run configuration should look like:
+```
+"10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt"
+```
+
+To run the CP1 codes first, one should run the CP1Server.java first on one computer before the other computer can run the CP1Client.java. If the client computer fails to connect to the correct server within 8080ms, the program will throw an timeout error. Both programs should run automatically until the end without errors. The CP1Server.java will print the total time taken for the file to be encrypted on the client, sent to the server, and then finally decrypted by the server. The server will receive the encrypted file, decrypt it and save it on its own local computer.
 
 Repeat the same process for CP2 codes. 
 ## Outcomes and Results:
