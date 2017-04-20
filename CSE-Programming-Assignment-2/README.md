@@ -38,6 +38,10 @@ The input to the run configurations should be in the following order:
 2) portNumber 
 3) path to files to be transferred
 
+```
+<Host name> <Port Number> <Paths of various files to be transferred, separated by spaces>
+```
+
 Below is an example of how the run configuration should look like when running the client from Eclipse:
 ```
 "10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt" ...
@@ -49,6 +53,10 @@ The input to the run configurations should be in the following order:
 1) PortNumber to listen on 
 2) Path to Servers private Key
 3) Path to Servers Signed Certificate
+
+```
+<Port number server should listen on> <Path to servers private key> <Path to servers signed Certificate>
+```
 
 Below is an example of how the run configuration should look like when running the client from Eclipse:
 ```
