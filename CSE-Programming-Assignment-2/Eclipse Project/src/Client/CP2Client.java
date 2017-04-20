@@ -31,8 +31,10 @@ import AuthenticationConstants.ACs;
 public class CP2Client {
 	public static void main(String[] args) throws Exception {
 		System.out.println("CP2: trying to connect");
-		String hostName = "10.12.21.29";
-		int portNumber = 7777;
+		//String hostName = "10.12.21.29";
+		//int portNumber = 7777;
+		String hostName = args[0];
+		int portNumber = Integer.parseInt(args[1]);
 		Socket echoSocket = new Socket();
 		SocketAddress sockaddr = new InetSocketAddress(hostName, portNumber);
 		echoSocket.connect(sockaddr, 8080);
@@ -108,6 +110,8 @@ public class CP2Client {
 			System.out.println("authentication failed");
 			return;
 		} 
+		out.println(ACs.SERVERIDENTIFIED);
+		out.flush();
 		System.out.println("successfully authenticated the server");
 		
 		//generate keypair here
@@ -173,7 +177,7 @@ public class CP2Client {
 		System.out.println("finished sending secret symmetric key");
 		
 		//use server's public key to encrypt the clients files and send it back to server
-		for (int i = 0; i < args.length; i++){
+		for (int i = 2; i < args.length; i++){
 			//tell server this is the starting time
 			File fileToBeSent = new File(args[i]);
 			byte[] fileBytes = new byte[(int)fileToBeSent.length()];

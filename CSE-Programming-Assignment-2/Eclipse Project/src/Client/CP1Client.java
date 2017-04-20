@@ -45,9 +45,12 @@ import javax.xml.bind.DatatypeConverter;
 public class CP1Client {
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("trying to connect");
-		String hostName = "10.12.145.110";
-		int portNumber = 7777;
+		System.out.println("CP1: trying to connect");
+		//String hostName = "10.12.21.29"; //args[0]
+		//int portNumber = 7777; //args[1]
+
+		String hostName = args[0];
+		int portNumber = Integer.parseInt(args[1]);
 		Socket echoSocket = new Socket();
 		SocketAddress sockaddr = new InetSocketAddress(hostName, portNumber);
 		echoSocket.connect(sockaddr, 8080);
@@ -123,6 +126,8 @@ public class CP1Client {
 			System.out.println("authentication failed");
 			return;
 		} 
+		out.println(ACs.SERVERIDENTIFIED);
+		out.flush();
 		System.out.println("successfully authenticated the server");
 		
 		//generate keypair here
@@ -177,12 +182,12 @@ public class CP1Client {
 		}
 		
 		System.out.println("initialising handshake");
-		String[] argsNic = {"smallFile.txt","medianFile.txt","largeFile.txt"};
 		
 		//use server's public key to encrypt the clients files and send it back to server
-		for (int i = 0; i < argsNic.length; i++){
+		//args[2],args[3], args[4];
+		for (int i = 2; i < args.length; i++){
 			//tell server this is the starting time
-			File fileToBeSent = new File(argsNic[i]);
+			File fileToBeSent = new File(args[i]);
 			byte[] fileBytes = new byte[(int)fileToBeSent.length()];
 			BufferedInputStream fileInput = new BufferedInputStream(new FileInputStream(fileToBeSent));
 			fileInput.read(fileBytes,0,fileBytes.length);
@@ -192,13 +197,12 @@ public class CP1Client {
 			Cipher Ecipher2 = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			Ecipher2.init(Cipher.ENCRYPT_MODE, CAkey);
 			byte[] encryptedFile = encryptFile(fileBytes, Ecipher2);
-			out.println(argsNic[i]);
+			out.println(args[i]);
 			out.println(Integer.toString(encryptedFile.length));
 			//String encryptedFileInString = new String(encryptedFile, "UTF-16");
 			out.println(DatatypeConverter.printBase64Binary(encryptedFile));
-
-			System.out.println("successfully sent over " + argsNic[i]);
-			if((i+1)<argsNic.length) {
+			System.out.println("successfully sent over " + args[i]);
+			if((i+1)<args.length) {
 				out.println(ACs.CLIENTONEFILESENT);
 			}else{
 				out.println(ACs.CLIENTDONE);
