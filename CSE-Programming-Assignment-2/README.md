@@ -67,10 +67,18 @@ Below is an example of how the run configuration should look like when running t
 
 The Client and Server file can also be compiled from the command line using "javac" and "java" commands. This is not shown here as the recommended method to run the two files would be via Eclipse or other environments as the different java files are in different packages for better organisation, making compilation slightly more advanced.
 
+### Things to note when running the program
 
-To run the CP1 codes first, one should run the CP1Server.java first on one computer before the other computer can run the CP1Client.java. If the client computer fails to connect to the correct server within 8080ms, the program will throw an timeout error. Both programs should run automatically until the end without errors. The CP1Server.java will print the total time taken for the file to be encrypted on the client, sent to the server, and then finally decrypted by the server. The server will receive the encrypted file, decrypt it and save it on its own local computer.
+To run the CP1 codes first, one should run the CP1Server.java first on one computer before the other computer can run the CP1Client.java. If the client computer fails to connect to the correct server within 8080ms, the program will throw an timeout error. Both programs should run automatically until the end without errors. 
 
-Repeat the same process for CP2 codes. 
+The steps above hold for files implementing both CP1 and CP2.
+
+Note that the server will receive the encrypted file, decrypt it and save it on its own local computer.
+
+## Data Collection
+
+The CP1Server.java will print the total time taken for the file to be encrypted on the client, sent to the server, and decrypted by the server. This will be plotted against the size of the encrypted file, to measure the relative speeds of the two Confidentality Protocols.
+
 ## Outcomes and Results:
 
 ### Timings for CP1
