@@ -81,7 +81,7 @@ public class ServerClassCP2 {
 		return false;
 	}
 
-	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaECipher) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaECipher, String serverCertPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 
 		System.out.println("Starting authentication protocol");
 		
@@ -98,7 +98,7 @@ public class ServerClassCP2 {
 			return terminateConnection(out);
 		}
 		
-		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\1001490.crt";
+//		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\1001490.crt";
 		File certFile = new File(serverCertPath);
 		byte[] certBytes = new byte[(int) certFile.length()];
 		BufferedInputStream certFileInput = new BufferedInputStream(new FileInputStream(certFile));
@@ -113,6 +113,12 @@ public class ServerClassCP2 {
 		System.out.println("Sending certificate in string : ");
 		out.println(DatatypeConverter.printBase64Binary(certBytes));
 		out.flush();
+		
+		System.out.println("Waiting for client to confirm my identity");
+		if(!ACs.SERVERIDENTIFIED.equals(in.readLine())){
+			System.out.println("Client did not verify my ID properly");
+			return terminateConnection(out);
+		}
 		
 		// Generate nonce to ensure that client is a valid requester, and not a playback attacker
 		byte[] serverNonce = new byte[32];
@@ -179,18 +185,29 @@ public class ServerClassCP2 {
 
 	  }
 	
+	
+	/*
+	 * args:
+	 * 	portNumber
+	 * 	private key location
+	 * 	Certificate Location
+	 * 	
+	 */
 	public static void main(String[] args) throws Exception{
 		
 		//String hostName = args[0];
-		//int portNum = Integer.parseInt(args[1]);
+		int portNum = Integer.parseInt(args[0]);
 		
-		int portNum = 7777;	// socket address
+//		int portNum = 7777;	// socket address
 		ServerSocket serverSocket;
 		Socket clientSocket;		
 		serverSocket = new ServerSocket(portNum);
 		
-		String privateKeyFileName = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\privateServerNic.der";
-	    Path keyPath = Paths.get(privateKeyFileName);
+//		String privateKeyFileName = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\privateServerNic.der";
+		String privateKeyFileName = args[1];
+		String serverCertPath = args[2];
+		
+		Path keyPath = Paths.get(privateKeyFileName);
 	    byte[] privateKeyByteArray = Files.readAllBytes(keyPath);
 	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
 		
@@ -213,7 +230,7 @@ public class ServerClassCP2 {
 										new DataInputStream(clientSocket.getInputStream())));
 		PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		
-		boolean proceed = authenticationProtocol(in,out,rsaECipherPrivate);
+		boolean proceed = authenticationProtocol(in,out,rsaECipherPrivate,serverCertPath);
 		
 		if(!proceed){
 			System.out.println("Authentication protocol failed!");

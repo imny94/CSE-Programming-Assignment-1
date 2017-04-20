@@ -10,6 +10,7 @@ public final class ACs {
 	public static final String CLIENTPUBLICKEY = "Client Public key";
 	public static final String CLIENTDONE = "Transmission is over";
 	public static final String CLIENTONEFILESENT = "Sent one file";
+	public static final String SERVERIDENTIFIED = "You are true";
 	
 	// Server
 	public static final String SERVERID = "I am SecStore";

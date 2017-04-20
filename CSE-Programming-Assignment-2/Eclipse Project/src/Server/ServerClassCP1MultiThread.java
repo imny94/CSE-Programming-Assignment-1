@@ -34,6 +34,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -44,7 +46,7 @@ import javax.xml.bind.DatatypeConverter;
 import AuthenticationConstants.ACs;	// Authentication Constants
 import CSV.CSVUtils;
 
-public class ServerClassCP1 {
+public class ServerClassCP1MultiThread {
 	
 	private static boolean sendMsg(PrintWriter out,String msg){
 		out.println(msg);
@@ -72,7 +74,7 @@ public class ServerClassCP1 {
 		return false;
 	}
 
-	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaECipher, String serverCertPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+	private static boolean authenticationProtocol(BufferedReader in, PrintWriter out, Cipher rsaECipher) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 
 		System.out.println("Starting authentication protocol");
 		
@@ -89,7 +91,7 @@ public class ServerClassCP1 {
 			return terminateConnection(out);
 		}
 		
-//		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\1001490.crt";
+		String serverCertPath = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE-Programming-Assignment-2\\1001490.crt";
 		File certFile = new File(serverCertPath);
 		byte[] certBytes = new byte[(int) certFile.length()];
 		BufferedInputStream certFileInput = new BufferedInputStream(new FileInputStream(certFile));
@@ -176,55 +178,32 @@ public class ServerClassCP1 {
 
 	  }
 	
-	/*
-	 * args:
-	 * 	portNumber
-	 * 	private key location
-	 * 	Certificate Location
-	 * 	
-	 */
-	public static void main(String[] args) throws Exception{
+	protected static void handleRequest(Socket clientSocket) throws Exception{
+		final String privateKeyFileName = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE-Programming-Assignment-2\\privateServerNic.der";
+	    final Path keyPath = Paths.get(privateKeyFileName);
+	    final byte[] privateKeyByteArray = Files.readAllBytes(keyPath);
+	    final PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
 		
-//		String hostName = args[0];
-		int portNum = Integer.parseInt(args[0]);
-		
-//		int portNum = 7777;	// socket address
-		ServerSocket serverSocket;
-		Socket clientSocket;		
-		serverSocket = new ServerSocket(portNum);
-		
-//		String privateKeyFileName = "D:\\Backup\\SUTD\\ISTD\\Computer Systems Engineering\\CSE-Programming-Assignments\\CSE Programming Assignment 2\\privateServerNic.der";
-		String privateKeyFileName = args[1];
-		String serverCertPath = args[2];
-		
-		Path keyPath = Paths.get(privateKeyFileName);
-	    byte[] privateKeyByteArray = Files.readAllBytes(keyPath);
-	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
-		
-		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+		final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		final PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 		
 		// Create encryption cipher
-		Cipher rsaECipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		Cipher rsaDCipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		final Cipher rsaECipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		final Cipher rsaDCipherPrivate = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		
 		rsaECipherPrivate.init(Cipher.ENCRYPT_MODE, privateKey);
 		rsaDCipherPrivate.init(Cipher.DECRYPT_MODE, privateKey);
 		
-		System.out.println("Accepting client connections now ...");
-		clientSocket = serverSocket.accept();
-		System.out.println("Client connection established!");
 
 		BufferedReader in = new BufferedReader(
 								new InputStreamReader(
 										new DataInputStream(clientSocket.getInputStream())));
 		PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		
-		boolean proceed = authenticationProtocol(in,out,rsaECipherPrivate,serverCertPath);
+		boolean proceed = authenticationProtocol(in,out,rsaECipherPrivate);
 		
 		if(!proceed){
 			System.out.println("Authentication protocol failed!");
-			serverSocket.close();
 			return;
 		}
 		
@@ -235,9 +214,16 @@ public class ServerClassCP1 {
 		String csvFile = "CP1Timings.csv";
         FileWriter writer = new FileWriter(csvFile,true);
         CSVUtils.writeLine(writer, Arrays.asList("File Size", "Time Taken (ms)"));
+        
+        final int NCPU = Runtime.getRuntime().availableProcessors();
+    	final double TCPU = 0.8;
+    	final double WCRATIO = 0.5;
+    	final int NTHREADS = (int) (NCPU*TCPU * (1+WCRATIO));
+    	final Executor threadExec = Executors.newFixedThreadPool(NTHREADS);
 		
 		do{
 			long startTime = System.currentTimeMillis();
+			
 			String clientsFileName = in.readLine();
 			System.out.println("Received client's file name");
 	        int clientFileSize = Integer.parseInt(in.readLine());
@@ -248,13 +234,20 @@ public class ServerClassCP1 {
 	        
 			String clientEncryptedFileString = in.readLine();
 			System.out.println("Received client's encrypted file");
-			encryptedDataFile = DatatypeConverter.parseBase64Binary(clientEncryptedFileString);
 			
-			byte[] clientDecryptedFileBytes = decryptFile(encryptedDataFile,rsaDCipherPrivate);
-			FileOutputStream fileOutput = new FileOutputStream(clientsFileName);
-	        fileOutput.write(clientDecryptedFileBytes, 0, clientDecryptedFileBytes.length);
-	        fileOutput.close();
-	        System.out.println("Successfully saved client's file!");
+			Runnable decryptionWorker = new Runnable(){
+				public void run(){
+					try {
+						handleDecryption(encryptedDataFile, clientEncryptedFileString, clientsFileName, rsaDCipherPrivate);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			};
+			
+			threadExec.execute(decryptionWorker);
+			
 	        clientDone = ACs.CLIENTDONE.equals(in.readLine());
 	        System.out.println("Does client have more files to send? " + clientDone);
 			long endTime = System.currentTimeMillis();
@@ -265,20 +258,60 @@ public class ServerClassCP1 {
 		
 		writer.close();
 		
-		serverSocket.close();
+		
 		
 		System.out.println(fileUploadTimings.toString());
-		
-		
 	}
 	
-	class OpenConnections implements Runnable{
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
+	protected static void handleDecryption(byte[] encryptedDataFile, String clientEncryptedFileString, String clientsFileName, Cipher rsaDCipherPrivate) throws Exception{
+		encryptedDataFile = DatatypeConverter.parseBase64Binary(clientEncryptedFileString);
+		
+		byte[] clientDecryptedFileBytes = decryptFile(encryptedDataFile,rsaDCipherPrivate);
+		FileOutputStream fileOutput = new FileOutputStream(clientsFileName);
+        fileOutput.write(clientDecryptedFileBytes, 0, clientDecryptedFileBytes.length);
+        fileOutput.close();
+        System.out.println("Successfully saved client's file!");
+	}
+	
+	/*
+	 * args:
+	 * 	portNumber
+	 * 	Certificate Location
+	 */
+	public static void main(String[] args) throws Exception{
+		
+//		String hostName = args[0];
+//		int portNum = Integer.parseInt(args[0]);
+		
+		int portNum = 7777;	// socket address
+		ServerSocket serverSocket;		
+		serverSocket = new ServerSocket(portNum);
+		
+		final Executor exec = Executors.newCachedThreadPool();
+		
+		while(true){
+			System.out.println("Accepting client connections now ...");
+			final Socket clientSocket = serverSocket.accept();
+			System.out.println("Client connection established!");
+			Runnable OpenConnections = new Runnable(){
+				public void run(){
+					try {
+						handleRequest(clientSocket);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			};
 			
+			exec.execute(OpenConnections);
 		}
+		
+//		serverSocket.close();
+		
+		
+		
+		
 		
 	}
 
