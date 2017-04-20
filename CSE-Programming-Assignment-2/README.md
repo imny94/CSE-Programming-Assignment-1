@@ -36,13 +36,11 @@ To compile the program on Eclipse, one should have two different machines with a
 The input to the run configurations should be in the following order: 
 1) hostName 
 2) portNumber 
-3) path to smallFile.txt 
-4) path to medianFile.txt 
-5) path to largeFile.txt. 
+3) path to files to be transferred
 
 Below is an example of how the run configuration should look like when running the client from Eclipse:
 ```
-"10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt"
+"10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt" ...
 ```
 
 ### Server Side Configuration
@@ -54,7 +52,7 @@ The input to the run configurations should be in the following order:
 
 Below is an example of how the run configuration should look like when running the client from Eclipse:
 ```
-"10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt"
+"7777" "ServerPrivateKey.der" "ServerSignedCertifcate.crt"
 ```
 
 ### Compiling from the Command Line / Terminal
