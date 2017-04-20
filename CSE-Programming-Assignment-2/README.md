@@ -29,12 +29,38 @@ CP2 implements symmetric key cryptography using AES.
 To compare the performance between the 2 different confidentiality protocols,their respective runtimes are computed and plotted in a graph to compare their speeds. The outcomes can be found at the last section of this page.  
 
 ## How to Compile the program on Eclipse:
-To compile the program on Eclipse, one must have two different machines with active Internet connection. Before running the program, one must change the I.P address of which the client connects to. One can do so by modifying the run configurations of the client code. The input to the run configurations should be in the following order: 1) hostName, 2) portNumber, 3)path to smallFile.txt, 4) path to medianFile.txt, 5) path to largeFile.txt. 
+To compile the program on Eclipse, one should have two different machines with an active Internet connection. Before running the program, one must configure the I.P address to which the client will attempt to connect to the server. This parameters are parsed to the client and server programs via the command line. This can either be done in Eclipse or via the Command line. 
 
-Below is an example of how the run configuration should look like:
+### Client Side configuration
+
+The input to the run configurations should be in the following order: 
+1) hostName 
+2) portNumber 
+3) path to smallFile.txt 
+4) path to medianFile.txt 
+5) path to largeFile.txt. 
+
+Below is an example of how the run configuration should look like when running the client from Eclipse:
 ```
 "10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt"
 ```
+
+### Server Side Configuration
+
+The input to the run configurations should be in the following order: 
+1) PortNumber to listen on 
+2) Path to Servers private Key
+3) Path to Servers Signed Certificate
+
+Below is an example of how the run configuration should look like when running the client from Eclipse:
+```
+"10.12.21.29" "7777" "smallFile.txt" "medianFile.txt" "largeFile.txt"
+```
+
+### Compiling from the Command Line / Terminal
+
+The Client and Server file can also be compiled from the command line using "javac" and "java" commands. This is not shown here as the recommended method to run the two files would be via Eclipse or other environments as the different java files are in different packages for better organisation, making compilation slightly more advanced.
+
 
 To run the CP1 codes first, one should run the CP1Server.java first on one computer before the other computer can run the CP1Client.java. If the client computer fails to connect to the correct server within 8080ms, the program will throw an timeout error. Both programs should run automatically until the end without errors. The CP1Server.java will print the total time taken for the file to be encrypted on the client, sent to the server, and then finally decrypted by the server. The server will receive the encrypted file, decrypt it and save it on its own local computer.
 
