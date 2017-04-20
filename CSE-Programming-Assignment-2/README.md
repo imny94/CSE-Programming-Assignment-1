@@ -39,7 +39,7 @@ The input to the run configurations should be in the following order:
 3) path to files to be transferred
 
 ```
-<Host name> <Port Number> <Paths of various files to be transferred, separated by spaces>
+<HostName> <PortNumber> <PathsFilesToTransferred,SeparatedBySpaces>
 ```
 
 Below is an example of how the run configuration should look like when running the client from Eclipse:
@@ -55,7 +55,7 @@ The input to the run configurations should be in the following order:
 3) Path to Servers Signed Certificate
 
 ```
-<Port number server should listen on> <Path to servers private key> <Path to servers signed Certificate>
+<PortNumber> <PathToPrivateKey> <PathToSignedCertificate>
 ```
 
 Below is an example of how the run configuration should look like when running the client from Eclipse:
